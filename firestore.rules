@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Only anonymised records, owned by an anonymous-auth uid. No PII fields are accepted.
+    match /anonymized_records/{id} {
+      allow create: if request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['ownerUid', 'profileId', 'collectedOn', 'biomarkers', 'pattern', 'createdAt']);
+      allow read: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if false;
+    }
+  }
+}
